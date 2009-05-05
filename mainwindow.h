@@ -12,9 +12,28 @@ class MainWindow : public QMainWindow
         MainWindow();
 
     public slots:
+        void connectDialog();
+        void aboutDialog();
+
         void connecMsg();
 
     private:
+        void createActions();
+        void createToolBars();
+        void createDocks();
+
+        QFrame* centralWidget;
+        QHBoxLayout* mainLayout;
+        QListWidget* contactsList;
+        QListWidget* chatList;
+
+        QDockWidget* consoleDock;
         QListWidget* console;
+
+        QToolBar *mainToolBar;
+
+        QAction *connectAct;
+        QAction *aboutAct;
+        QAction *quitAct;
 };
 #endif
