@@ -6,8 +6,13 @@ TARGET = wisp
 TEMPLATE = app
 SOURCES += main.cpp \
     mainwindow.cpp \
-    comms.cpp
+    comms.cpp \
+    interface/identrequest.cpp
 HEADERS += mainwindow.h \
-    comms.h
+    comms.h \
+    interface/identrequest.h
+win32:LIBS += libgloox
+else:LIBS += -L/usr/local/lib \
+    -lgloox
+RESOURCES += wisp.qrc
 FORMS += 
-LIBS += libgloox
