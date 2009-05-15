@@ -2,7 +2,11 @@
 #define IDENTREQUEST_H
 
 #include <QDialog>
-#include <QtGui>
+#include <QWidget>
+#include <QLineEdit>
+#include <QGridLayout>
+#include <QLabel>
+#include <QPushButton>
 
 class IdentRequest : public QDialog
 {

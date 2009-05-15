@@ -9,9 +9,14 @@
 #include <gloox/loghandler.h>
 #include <gloox/logsink.h>
 #include <gloox/messagehandler.h>
+#include <gloox/messagesessionhandler.h>
+#include <gloox/vcardhandler.h>
+#include <gloox/vcardmanager.h>
+#include <gloox/vcard.h>
 
 #include <QObject>
 #include <QString>
+#include <QMap>
 
 using namespace gloox;
 
@@ -26,7 +31,7 @@ using namespace gloox;
 #include <windows.h>
 #endif
 
-class Comms : public QObject, RosterListener, ConnectionListener, MessageHandler
+class Comms : public QObject, RosterListener, ConnectionListener, MessageHandler, MessageSessionHandler, VCardHandler
 {
     Q_OBJECT
 
@@ -55,10 +60,14 @@ class Comms : public QObject, RosterListener, ConnectionListener, MessageHandler
         virtual bool handleSubscriptionRequest( const JID& jid, const std::string& /*msg*/ );
         virtual bool handleUnsubscriptionRequest( const JID& jid, const std::string& /*msg*/ );
         virtual void handleNonrosterPresence( Stanza* stanza );
+        virtual void handleVCard( const JID& jid, VCard *vcard );
+        virtual void handleVCardResult( VCardContext context, const JID& jid, StanzaError se );
         virtual void handleMessage( Stanza *stanza, MessageSession * /*session*/ );
+        virtual void handleMessageSession( MessageSession *session );
 
     public slots:
         void slotReceive();
+        void slotSendMessage( QString dest, QString message );
 
     signals:
         void sigConnected();
@@ -71,17 +80,21 @@ class Comms : public QObject, RosterListener, ConnectionListener, MessageHandler
         void sigItemUpdated( const JID& jid );
         void sigRoster( QStringList *roster );
         void sigRosterError();
-        void sigRosterPresence( QString jid, QString resource );
+        void sigRosterPresence( QString jid, QString msg );
         void sigRosterNonPresence();
         void sigSubscriptionRequest( const JID& jid );
         void sigUnsubscriptionRequest( const JID& jid );
-        void sigMessage( Stanza *stanza );
+        void sigVCardReceived( QString jid, QString name );
+        void sigMessage( QString from, QString body );
+        void sigMessageSession( MessageSession *session );
 
     private:
         QString username;
         QString userpass;
 
         Client *client;
+        VCardManager *vManager;
         ConnectionError ce;
+        QMap<QString,MessageSession*> sessions;
 };
 #endif // COMMS_H

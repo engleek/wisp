@@ -5,9 +5,17 @@
 #include "comms.h"
 
 #include <QMainWindow>
-#include <QtGui>
+#include <QString>
+#include <QListWidget>
+#include <QDockWidget>
+#include <QAction>
+#include <QMap>
+#include <QTimer>
+#include <QToolBar>
 
 #include "interface/identrequest.h"
+#include "contact.h"
+#include "interface/chatbox.h"
 
 class MainWindow : public QMainWindow
 {
@@ -20,6 +28,7 @@ class MainWindow : public QMainWindow
         void setIdents();
         void about();
 
+        void slotToggleConsole();
         void slotConnect();
         void slotConnected();
         void slotResourceBindError();
@@ -31,11 +40,15 @@ class MainWindow : public QMainWindow
         void slotItemUpdated();
         void slotRoster( QStringList *newRoster );
         void slotRosterError();
-        void slotRosterPresence( QString jid, QString resource );
+        void slotRosterPresence( QString jid, QString msg );
         void slotRosterNonPresence();
         void slotSubscriptionRequest();
         void slotUnsubscriptionRequest();
-        void slotMessage();
+        void slotVCardReceived( QString jid, QString name );
+        void slotMessage( QString from, QString body );
+        void slotSendMsg( QString jid, QString msg );
+
+        void slotShowChat();
 
     private:
         void createActions();
@@ -44,9 +57,6 @@ class MainWindow : public QMainWindow
 
         IdentRequest *identDialog;
 
-        QListWidget* chatList;
-
-        QDockWidget* contactsDock;
         QListWidget* contactsList;
 
         QDockWidget* consoleDock;
@@ -55,10 +65,13 @@ class MainWindow : public QMainWindow
         QToolBar *mainToolBar;
 
         QAction *connectAct;
+        QAction *toggleConsoleAct;
         QAction *aboutAct;
+        QAction *showChatAct;
         QAction *quitAct;
 
-        QMap<QString, QListWidgetItem*> roster;
+        QMap<QString, Contact*> roster;
+        QMap<QString, ChatBox*> conversations;
 
         Comms *r;
         QTimer *timer;

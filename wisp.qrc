@@ -4,5 +4,9 @@
         <file>images/user_red.png</file>
         <file>images/user_gray.png</file>
         <file>images/user_green.png</file>
+        <file>images/application_view_list.png</file>
+        <file>images/connect.png</file>
+        <file>images/door_open.png</file>
+        <file>images/information.png</file>
     </qresource>
 </RCC>

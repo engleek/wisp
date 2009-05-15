@@ -19,14 +19,15 @@ void Comms::start( QString user, QString pass )
     JID jid( username.toStdString() );
 
     client = new Client( jid, userpass.toStdString() );
+    vManager = new VCardManager( client );
 
     client->disco()->setVersion( "wisp", GLOOX_VERSION );
     client->disco()->setIdentity( "client", "SuperMe" );
     client->disco()->addFeature( XMLNS_CHAT_STATES );
 
     client->registerConnectionListener( this );
-    client->registerConnectionListener( this );
     client->registerMessageHandler( this );
+    client->registerMessageSessionHandler( this, 0 );
     client->rosterManager()->registerRosterListener( this );
 
 /*    StringList ca;
@@ -118,9 +119,11 @@ void Comms::handleRosterError( Stanza * /*stanza*/ )
     emit sigRosterError();
 }
 
-void Comms::handleRosterPresence( const RosterItem& item, const std::string& resource, Presence presence, const std::string& /*msg*/ )
+void Comms::handleRosterPresence( const RosterItem& item, const std::string& resource, Presence presence, const std::string& msg )
 {
-    emit sigRosterPresence( QString( item.jid().c_str() ), QString( resource.c_str() ) );
+    emit sigRosterPresence( QString( item.jid().c_str() ), QString( msg.c_str() ) );
+    JID jid( item.jid().c_str() );
+    vManager->fetchVCard( jid, this );
 }
 
 void Comms::handleSelfPresence( const RosterItem& item, const std::string& resource, Presence presence, const std::string& /*msg*/ )
@@ -148,7 +151,28 @@ void Comms::handleNonrosterPresence( Stanza* stanza )
     emit sigRosterNonPresence();
 }
 
+void Comms::handleVCard( const JID &jid, VCard *vcard )
+{
+    emit sigVCardReceived( QString( jid.bare().c_str() ), QString( vcard->formattedname().c_str() ) );
+}
+
+void Comms::handleVCardResult( VCardContext context, const JID &jid, StanzaError se = StanzaErrorUndefined )
+{}
+
 void Comms::handleMessage( Stanza *stanza, MessageSession * /*session*/ )
 {
-    emit sigMessage( stanza );
+    emit sigMessage( QString( stanza->from().bare().c_str() ), QString( stanza->body().c_str() ) );
+}
+
+void Comms::handleMessageSession( MessageSession *session )
+{
+    QString key = session->target().bare().c_str();
+    sessions[ key ] = session;
+    sessions[ key ]->registerMessageHandler( this );
+}
+
+void Comms::slotSendMessage( QString dest, QString message )
+{
+    QString temp = QString( message.toUtf8() );
+    sessions[ dest ]->send( temp.toStdString() );
 }
