@@ -1,21 +1,18 @@
-#include <comms.h>
-#include <contact.h>
+#include "mainwindow.h"
 
 #include <gloox/gloox.h>
 #include <gloox/jid.h>
 #include <gloox/rostermanager.h>
 #include <gloox/presencehandler.h>
 
-#include "mainwindow.h"
-#include "interface/identrequest.h"
-#include "interface/chatbox.h"
 
 #include <QtDebug>
 
 MainWindow::MainWindow()
 {
+    setUnifiedTitleAndToolBarOnMac( true );
+
     r = new Comms();
-    identDialog = new IdentRequest();
 
     createActions();
     createToolBars();
@@ -25,12 +22,11 @@ MainWindow::MainWindow()
     contactsList->setMinimumWidth( 150 );
     contactsList->setMinimumHeight( 250 );
     contactsList->setUniformItemSizes( true );
-    contactsList->setSpacing( 5 );
-    contactsList->setGridSize( QSize( 200, 50 ) );
+    contactsList->setSpacing( 3 );
     contactsList->setWordWrap( true );
-    //contactsList->setWrapping( true );
-    //contactsList->
-    setCentralWidget( contactsList );
+
+    connectBox = new ConnectBox();
+    setCentralWidget( connectBox );
 
     QObject::connect( r, SIGNAL( sigConnected() ), this, SLOT( slotConnected() ) );
     QObject::connect( r, SIGNAL( sigRoster( QStringList* ) ), this, SLOT( slotRoster( QStringList* ) ) );
@@ -38,7 +34,7 @@ MainWindow::MainWindow()
     QObject::connect( r, SIGNAL( sigVCardReceived(QString,QString) ), this, SLOT( slotVCardReceived(QString,QString) ) );
     QObject::connect( r, SIGNAL( sigMessage(QString,QString) ), this, SLOT( slotMessage(QString,QString) ) );
 
-    QObject::connect( identDialog, SIGNAL(accepted()), this, SLOT( setIdents() ) );
+    QObject::connect( connectBox, SIGNAL( tryConnection(QString,QString) ), this, SLOT( setIdents(QString,QString) ) );
 
     timer = new QTimer( this );
     QObject::connect( timer, SIGNAL( timeout() ), r, SLOT( slotReceive() ) );
@@ -48,7 +44,7 @@ void MainWindow::createActions()
 {
     connectAct = new QAction( QIcon( ":/images/connect.png" ), tr( "&Connect" ), this );
     connectAct->setStatusTip( tr( "Connect" ) );
-    connect( connectAct, SIGNAL( triggered() ), identDialog, SLOT( exec() ) );
+    //connect( connectAct, SIGNAL( triggered() ), identDialog, SLOT( exec() ) );
 
     toggleConsoleAct = new QAction( QIcon( ":/images/application_view_list.png" ), tr( "Co&nsole" ), this );
     toggleConsoleAct->setStatusTip( tr( "Toggle Console" ) );
@@ -68,12 +64,15 @@ void MainWindow::createActions()
 
 void MainWindow::createToolBars()
 {
-    mainToolBar = addToolBar( tr( "Main" ) );
-    mainToolBar->addAction( connectAct );
-    mainToolBar->addAction( toggleConsoleAct );
-    mainToolBar->addAction( aboutAct );
+    mainToolBar = new QToolBar( tr( "Main" ), this );
+    //mainToolBar->addAction( connectAct );
+    //mainToolBar->addAction( toggleConsoleAct );
+    //mainToolBar->addAction( aboutAct );
     mainToolBar->addAction( quitAct );
-    mainToolBar->addAction( showChatAct );
+    //mainToolBar->addAction( showChatAct );
+
+    mainToolBar->setMovable( false );
+    addToolBar( Qt::LeftToolBarArea, mainToolBar );
 }
 
 void MainWindow::createDocks()
@@ -90,10 +89,10 @@ void MainWindow::createDocks()
     consoleDock->setVisible( false );
 }
 
-void MainWindow::setIdents()
+void MainWindow::setIdents( QString name, QString pass )
 {
-    username = identDialog->userNameInput->text();
-    userpass = identDialog->userPassInput->text();
+    username = name;
+    userpass = pass;
 
     slotConnect();
 }
@@ -102,6 +101,7 @@ void MainWindow::slotConnect()
 {
     r->start( username, userpass );
     timer->start( 500 );
+    connectBox->toggleStack();
 }
 
 void MainWindow::slotToggleConsole()
@@ -117,6 +117,12 @@ void MainWindow::slotConnected()
     QListWidgetItem * newItem = new QListWidgetItem( tr( "Connection!" ) );
     console->addItem(newItem);
     console->scrollToItem(newItem);
+
+    QString temp = "Fetching Contacts...";
+    connectBox->nextMsg( temp );
+
+    //connectBox->hideMe();
+    //setCentralWidget( contactsList );
 }
 
 void MainWindow::slotResourceBindError(){}
@@ -142,6 +148,8 @@ void MainWindow::slotRoster( QStringList *newRoster )
         roster.insert( jid , contact );
         contactsList->addItem( tempItem );
     }
+
+    setCentralWidget( contactsList );
 }
 
 void MainWindow::slotRosterError(){}
@@ -152,6 +160,7 @@ void MainWindow::slotRosterPresence( QString jid, QString msg )
     tempItem->setIcon( QIcon( ":/images/user_green.png" ) );
     QString temp = jid + QString( "\n" ) + msg;
     tempItem->setText( temp );
+    contactsList->repaint();
 }
 
 void MainWindow::slotRosterNonPresence(){}
@@ -162,6 +171,8 @@ void MainWindow::slotVCardReceived( QString jid, QString name )
     roster.value( jid )->name = name;
     QString temp = name + QString( "\n" ) + roster[ jid ]->statusMsg;
     roster.value( jid )->contactEntry->setText( temp );
+    setMaximumWidth( contactsList->width() + mainToolBar->width() + 15 );
+    repaint();
 }
 
 void MainWindow::slotMessage( QString from, QString body )
@@ -171,20 +182,19 @@ void MainWindow::slotMessage( QString from, QString body )
         conversations.insert( from, new ChatBox( from ) );
         connect( conversations[ from ], SIGNAL( sigSendMessage(QString,QString) ), this, SLOT( slotSendMsg(QString,QString) ) );
     }
-    QString temp = roster[ from ]->name + QString( ": " ) + body;
-    conversations[ from ]->addMsg( temp );
+    conversations[ from ]->addMsg( roster[ from ]->name, body );
 }
 
 void MainWindow::slotSendMsg( QString jid, QString msg )
 {
     qDebug() << "Message Send: " << jid << " :: " << msg;
     r->slotSendMessage( jid, msg );
-    QString temp = QString( "me: " ) + msg;
-    conversations[ jid ]->addMsg( temp );
+    QString temp = QString( "me" );
+    conversations[ jid ]->addMsg( temp, msg );
 }
 
 void MainWindow::slotShowChat()
 {
     ChatBox *temp = new ChatBox( QString("myChatBox") );
-    temp->addMsg( QString( "hello" ) );
+    temp->addMsg( QString( "tester" ), QString( "hello" ) );
 }

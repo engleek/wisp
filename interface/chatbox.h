@@ -6,6 +6,8 @@
 #include <QWebView>
 #include <QVBoxLayout>
 #include <QLineEdit>
+#include <QTimer>
+#include <QTime>
 
 class ChatBox : public QTabWidget
 {
@@ -13,7 +15,7 @@ class ChatBox : public QTabWidget
 
     public:
         ChatBox( QString jid );
-        void addMsg( QString msg );
+        void addMsg( QString name, QString msg );
 
     signals:
         void sigSendMessage( QString from, QString msg);
@@ -21,12 +23,20 @@ class ChatBox : public QTabWidget
     public slots:
         void slotSendMessage();
 
+    private slots:
+        void time();
+
     private:
         QVBoxLayout *chatLayout;
         QWebView* chatView;
         QLineEdit* chatInput;
+        QString lastToTalk;
+        QString body;
         QString contactJid;
         QString history;
+        QTime lastTalkedTime;
+        QDate lastTalkedDate;
+        QTimer *timer;
 };
 
 #endif // CHATBOX_H

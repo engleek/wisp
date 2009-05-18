@@ -2,7 +2,7 @@
 #define MAINWINDOW_H
 
 #include <gloox/gloox.h>
-#include "comms.h"
+#include "../comms.h"
 
 #include <QMainWindow>
 #include <QString>
@@ -13,9 +13,9 @@
 #include <QTimer>
 #include <QToolBar>
 
-#include "interface/identrequest.h"
+#include "connectbox.h"
 #include "contact.h"
-#include "interface/chatbox.h"
+#include "chatbox.h"
 
 class MainWindow : public QMainWindow
 {
@@ -25,7 +25,7 @@ class MainWindow : public QMainWindow
         MainWindow();
 
     public slots:
-        void setIdents();
+        void setIdents( QString name, QString pass );
         void about();
 
         void slotToggleConsole();
@@ -55,7 +55,7 @@ class MainWindow : public QMainWindow
         void createToolBars();
         void createDocks();
 
-        IdentRequest *identDialog;
+        ConnectBox *connectBox;
 
         QListWidget* contactsList;
 

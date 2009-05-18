@@ -8,5 +8,7 @@
         <file>images/connect.png</file>
         <file>images/door_open.png</file>
         <file>images/information.png</file>
+        <file>chatstyle.css</file>
+        <file>images/bouncingball.gif</file>
     </qresource>
 </RCC>

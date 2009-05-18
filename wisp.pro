@@ -11,16 +11,16 @@ QT += webkit
 
 # Input
 HEADERS += comms.h \
-    contact.h \
-    mainwindow.h \
+    interface/contact.h \
+    interface/mainwindow.h \
     interface/chatbox.h \
-    interface/identrequest.h
+    interface/connectbox.h
 SOURCES += comms.cpp \
-    contact.cpp \
+    interface/contact.cpp \
     main.cpp \
-    mainwindow.cpp \
+    interface/mainwindow.cpp \
     interface/chatbox.cpp \
-    interface/identrequest.cpp
+    interface/connectbox.cpp
 win32:LIBS += libgloox
 else:LIBS += -L/usr/local/lib -lgloox
 RESOURCES += wisp.qrc
