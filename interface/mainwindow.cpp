@@ -38,6 +38,8 @@ MainWindow::MainWindow()
 
     timer = new QTimer( this );
     QObject::connect( timer, SIGNAL( timeout() ), r, SLOT( slotReceive() ) );
+
+    QObject::connect( contactsList, SIGNAL( itemDoubleClicked(QListWidgetItem*) ), this, SLOT( slotLocalSession(QListWidgetItem*) ) );
 }
 
 void MainWindow::createActions()
@@ -140,6 +142,7 @@ void MainWindow::slotRoster( QStringList *newRoster )
         QString jid = newRoster->at( i );
         QListWidgetItem *tempItem = new QListWidgetItem( jid );
         tempItem->setIcon( QIcon( ":/images/user_gray.png" ) );
+        tempItem->setData( Qt::UserRole, QVariant( jid ) );
 
         Contact *contact = new Contact();
         contact->jid = jid;
@@ -160,7 +163,7 @@ void MainWindow::slotRosterPresence( QString jid, QString msg )
     tempItem->setIcon( QIcon( ":/images/user_green.png" ) );
     QString temp = jid + QString( "\n" ) + msg;
     tempItem->setText( temp );
-    contactsList->repaint();
+    //contactsList->repaint();
 }
 
 void MainWindow::slotRosterNonPresence(){}
@@ -191,6 +194,30 @@ void MainWindow::slotSendMsg( QString jid, QString msg )
     r->slotSendMessage( jid, msg );
     QString temp = QString( "me" );
     conversations[ jid ]->addMsg( temp, msg );
+}
+
+void MainWindow::slotLocalSession( QListWidgetItem* item )
+{
+    QString jid = item->data( Qt::UserRole ).toString();
+
+    r->localSession( jid );
+
+    if( !conversations.contains( jid ) )
+    {
+        conversations.insert( jid, new ChatBox( jid ) );
+        connect( conversations[ jid ], SIGNAL( sigSendMessage(QString,QString) ), this, SLOT( slotSendMsg(QString,QString) ) );
+    }
+    else
+    {
+        if( conversations[ jid ]->isVisible() )
+        {
+            conversations[ jid ]->setFocus();
+        }
+        else
+        {
+            conversations[ jid ]->show();
+        }
+    }
 }
 
 void MainWindow::slotShowChat()

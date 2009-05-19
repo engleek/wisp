@@ -65,6 +65,8 @@ class Comms : public QObject, RosterListener, ConnectionListener, MessageHandler
         virtual void handleMessage( Stanza *stanza, MessageSession * /*session*/ );
         virtual void handleMessageSession( MessageSession *session );
 
+        void localSession( QString jid );
+
     public slots:
         void slotReceive();
         void slotSendMessage( QString dest, QString message );

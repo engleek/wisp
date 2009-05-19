@@ -24,6 +24,9 @@ class MainWindow : public QMainWindow
     public:
         MainWindow();
 
+    signals:
+        void sigSessionAsked( QString jid );
+
     public slots:
         void setIdents( QString name, QString pass );
         void about();
@@ -47,6 +50,7 @@ class MainWindow : public QMainWindow
         void slotVCardReceived( QString jid, QString name );
         void slotMessage( QString from, QString body );
         void slotSendMsg( QString jid, QString msg );
+        void slotLocalSession( QListWidgetItem* item );
 
         void slotShowChat();
 

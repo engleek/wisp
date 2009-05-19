@@ -171,6 +171,16 @@ void Comms::handleMessageSession( MessageSession *session )
     sessions[ key ]->registerMessageHandler( this );
 }
 
+void Comms::localSession( QString jid )
+{
+    if( ! sessions.keys().contains( jid ) )
+    {
+        MessageSession *temp = new MessageSession( client, JID( jid.toStdString() ), false, 0 );
+        sessions[ jid ] = temp;
+        temp->registerMessageHandler( this );
+    }
+}
+
 void Comms::slotSendMessage( QString dest, QString message )
 {
     QString temp = QString( message.toUtf8() );
