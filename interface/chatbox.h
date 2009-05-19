@@ -4,6 +4,7 @@
 #include <QTabWidget>
 #include <QString>
 #include <QWebView>
+#include <QWebFrame>
 #include <QVBoxLayout>
 #include <QLineEdit>
 #include <QTimer>

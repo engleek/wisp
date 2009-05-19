@@ -2,6 +2,7 @@
 #include <QTimer>
 #include <QString>
 #include <QStringList>
+#include <QtDebug>
 
 Comms::Comms()
 {}
@@ -29,6 +30,8 @@ void Comms::start( QString user, QString pass )
     client->registerMessageHandler( this );
     client->registerMessageSessionHandler( this, 0 );
     client->rosterManager()->registerRosterListener( this );
+
+    client->logInstance().registerLogHandler( LogLevelDebug, LogAreaAll, this );
 
 /*    StringList ca;
     ca.push_back( "/path/to/cacert.crt" );
@@ -121,7 +124,7 @@ void Comms::handleRosterError( Stanza * /*stanza*/ )
 
 void Comms::handleRosterPresence( const RosterItem& item, const std::string& resource, Presence presence, const std::string& msg )
 {
-    emit sigRosterPresence( QString( item.jid().c_str() ), QString( msg.c_str() ) );
+    emit sigRosterPresence( QString::fromUtf8( item.jid().data() ), QString::fromUtf8( msg.data() ) );
     JID jid( item.jid().c_str() );
     vManager->fetchVCard( jid, this );
 }
@@ -153,7 +156,7 @@ void Comms::handleNonrosterPresence( Stanza* stanza )
 
 void Comms::handleVCard( const JID &jid, VCard *vcard )
 {
-    emit sigVCardReceived( QString( jid.bare().c_str() ), QString( vcard->formattedname().c_str() ) );
+    emit sigVCardReceived( QString::fromUtf8( jid.bare().data() ), QString::fromUtf8( vcard->formattedname().data() ) );
 }
 
 void Comms::handleVCardResult( VCardContext context, const JID &jid, StanzaError se = StanzaErrorUndefined )
@@ -161,12 +164,13 @@ void Comms::handleVCardResult( VCardContext context, const JID &jid, StanzaError
 
 void Comms::handleMessage( Stanza *stanza, MessageSession * /*session*/ )
 {
-    emit sigMessage( QString( stanza->from().bare().c_str() ), QString( stanza->body().c_str() ) );
+    emit sigMessage( QString::fromUtf8( stanza->from().bare().data() ), QString::fromUtf8( stanza->body().data() ) );
+    //qDebug() << "Received:\n\tdata: " << QString( stanza->body().c_str() ).toUtf8();
 }
 
 void Comms::handleMessageSession( MessageSession *session )
 {
-    QString key = session->target().bare().c_str();
+    QString key = QString::fromUtf8( session->target().bare().data() );
     sessions[ key ] = session;
     sessions[ key ]->registerMessageHandler( this );
 }
@@ -185,4 +189,10 @@ void Comms::slotSendMessage( QString dest, QString message )
 {
     QString temp = QString( message.toUtf8() );
     sessions[ dest ]->send( temp.toStdString() );
+}
+
+void Comms::handleLog( LogLevel level, LogArea area, const std::string& message )
+{
+    QString temp = QString::fromUtf8( message.data(), message.length() );
+    qDebug() << temp << "\n";
 }

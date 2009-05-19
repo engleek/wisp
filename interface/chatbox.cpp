@@ -37,6 +37,7 @@ void ChatBox::addMsg( QString name, QString msg )
     history.append( temp );
     temp = body + history + "</body></html>";
     chatView->setHtml( temp );
+    chatView->page()->mainFrame()->setScrollBarValue( Qt::Vertical, chatView->page()->mainFrame()->scrollBarMaximum( Qt::Vertical ) );
 
     lastToTalk = name;
     lastTalkedTime = QTime::currentTime();
@@ -52,9 +53,10 @@ void ChatBox::time()
     history.append( temp );
     temp = body + history + "</body></html>";
     chatView->setHtml( temp );
+    chatView->page()->mainFrame()->setScrollBarValue( Qt::Vertical, chatView->page()->mainFrame()->scrollBarMaximum( Qt::Vertical ) );
     timer->stop();
 
-    qDebug() << temp;
+    //qDebug() << temp;
 }
 
 void ChatBox::slotSendMessage()

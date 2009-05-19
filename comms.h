@@ -31,7 +31,7 @@ using namespace gloox;
 #include <windows.h>
 #endif
 
-class Comms : public QObject, RosterListener, ConnectionListener, MessageHandler, MessageSessionHandler, VCardHandler
+class Comms : public QObject, RosterListener, ConnectionListener, MessageHandler, MessageSessionHandler, VCardHandler, LogHandler
 {
     Q_OBJECT
 
@@ -64,6 +64,7 @@ class Comms : public QObject, RosterListener, ConnectionListener, MessageHandler
         virtual void handleVCardResult( VCardContext context, const JID& jid, StanzaError se );
         virtual void handleMessage( Stanza *stanza, MessageSession * /*session*/ );
         virtual void handleMessageSession( MessageSession *session );
+        virtual void handleLog( LogLevel level, LogArea area, const std::string& message );
 
         void localSession( QString jid );
 
